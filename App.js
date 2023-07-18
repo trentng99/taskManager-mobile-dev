@@ -1,99 +1,132 @@
-import { StatusBar } from "expo-status-bar";
-import { React, useEffect, useState, useCallback } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { CheckBox } from "react-native-web";
-let id = 0;
+import React, { useState } from "react";
+import { StyleSheet, Text, View, TextInput, Button, FlatList, CheckBox } from "react-native";
+
+
 export default function App() {
   const [input, setInput] = useState("");
   const [todos, setTodos] = useState([]);
-  const [showEdit, setShowEdit] = useState(true)
-  const [editInput, setEditInput] = useState({})
+  const [showEdit, setShowEdit] = useState(true);
+  const [editInput, setEditInput] = useState({});
+
+  let id = 0;
 
   const handleSubmit = () => {
     setTodos([...todos, { id: id++, value: input, complete: false }]);
     setInput("");
   };
 
-  const handleDelete = (index) => {
-    console.log(index);
-    setTodos(todos.filter((task) => task.id !== index));
+  const handleDelete = (id) => {
+    setTodos(todos.filter((task) => task.id !== id));
   };
 
-  const handleShowEdit = (index) => {
-    console.log('show edit')
-    setShowEdit(false)
-    setEditInput(todos[index])
+  const handleShowEdit = (id) => {
+    const selectedTodo = todos.find((todo) => todo.id === id);
+    setShowEdit(false);
+    setEditInput(selectedTodo);
   };
 
   const handleEdit = () => {
-    console.log('editing')
-
-    const todosArr = todos
-    const index = editInput.id
-    console.log(todosArr[index].value)
-    console.log(editInput.value)
-    todosArr[index].value = editInput.value
-    setTodos(todosArr);
-    setShowEdit(true)
-    setEditInput({})
-  }
+    const updatedTodos = todos.map((todo) =>
+      todo.id === editInput.id ? editInput : todo
+    );
+    setTodos(updatedTodos);
+    setShowEdit(true);
+    setEditInput({});
+  };
 
   const handleComplete = (id, complete) => {
-    //Find the index of the object with matching id
-    const indexOfTodo = todos.findIndex(todo => todo.id === id)
-    //Declare a new variable that is suppose to store the updated array of TodoList
-    const updatedTodos = [...todos]
-    //Changed the checked status
-    updatedTodos[indexOfTodo].complete = complete
-    setTodos(updatedTodos)
-  }
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id ? { ...todo, complete: complete } : todo
+    );
+    setTodos(updatedTodos);
+  };
 
   return (
-    <div>
-      <h1>Todo List</h1>
-      <div>
-        <input
-          type="text"
+    <View style={styles.container}>
+      <Text style={styles.heading}>Todo List</Text>
+      <View>
+        <TextInput
+          style={styles.input}
           placeholder="Add your task"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChangeText={(text) => setInput(text)}
         />
-        <div>
-          <button onClick={handleSubmit}>Submit</button>
-        </div>
-      </div>
-      <div hidden = {showEdit}>
-        <input
-          type="text"
-          placeholder="Edit task"
-          value={editInput.value}
-          onChange={(e) => setEditInput({id: editInput.id, value:e.target.value, complete: editInput.complete})}
-        />
-        <div>
-          <button onClick={handleEdit}>edit</button>
-        </div>
-      </div>
-      <ul>
-        {todos.map(({ id, value, complete }) => {
-            return (
-              <p key={id}>
-                {value}
-                <input value={complete} type="checkbox" onChange={(e) => handleComplete(id, e.target.checked)} />
-                <button onClick={() => handleShowEdit(id)}>Edit</button>
-                <button onClick={() => handleDelete(id)}>Delete</button>
-              </p>
-            );
-        })}
-      </ul>
-    </div>
+        <View style={styles.buttonContainer}>
+          <Button title="Submit" onPress={handleSubmit} />
+        </View>
+      </View>
+      {!showEdit && (
+        <View>
+          <TextInput
+            style={styles.input}
+            placeholder="Edit task"
+            value={editInput.value}
+            onChangeText={(text) =>
+              setEditInput({ ...editInput, value: text })
+            }
+          />
+          <View style={styles.buttonContainer}>
+            <Button title="Edit" onPress={handleEdit} />
+          </View>
+        </View>
+      )}
+      <FlatList
+        data={todos}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.todoItem}>
+            <CheckBox
+              style={styles.checkbox}
+              value={item.complete}
+              onValueChange={(value) => handleComplete(item.id, value)}
+            />
+            <Text style={item.complete ? styles.completedText : {}}>
+              {item.value}
+            </Text>
+            <View style={styles.buttonContainer}>
+              <Button title="Edit" onPress={() => handleShowEdit(item.id)} />
+              <Button title="Delete" onPress={() => handleDelete(item.id)} />
+            </View>
+          </View>
+        )}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    padding: 16,
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  input: {
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 8,
+    padding: 8,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+  },
+  todoItem: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    marginBottom: 8,
+  },
+  checkbox: {
+    marginRight: 8,
+    width: 20,
+    height: 20,
+  },
+  completedText: {
+    textDecorationLine: "line-through",
   },
 });
