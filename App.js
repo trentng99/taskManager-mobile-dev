@@ -1,96 +1,59 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, TextInput, Button, FlatList, CheckBox } from "react-native";
+import {
+  StyleSheet,
+  Text,
+} from "react-native";
+import { BottomNavigation, PaperProvider, useTheme, DefaultTheme } from "react-native-paper";
+import Homepage from "./pages/Homepage";
 
+const MusicRoute = () => <Text>Music</Text>;
+
+const AlbumsRoute = () => <Text>Albums</Text>;
+
+const RecentsRoute = () => <Text>Recents</Text>;
 
 export default function App() {
-  const [input, setInput] = useState("");
   const [todos, setTodos] = useState([]);
-  const [showEdit, setShowEdit] = useState(true);
-  const [editInput, setEditInput] = useState({});
+  const [index, setIndex] = React.useState(0);
+  const theme = {...DefaultTheme};
 
-  let id = 0;
+  const [routes] = React.useState([
+    {
+      key: "home",
+      title: "",
+      focusedIcon: "home-variant",
+      unfocusedIcon: "home-variant-outline",
+    },
+    {
+      key: "achievements",
+      title: "",
+      focusedIcon: "medal",
+      unfocusedIcon: "medal-outline",
+    },
+    {
+      key: "calendar",
+      title: "",
+      focusedIcon: "application",
+      unfocusedIcon: "application-outline",
+    },
+  ]);
 
-  const handleSubmit = () => {
-    setTodos([...todos, { id: id++, value: input, complete: false }]);
-    setInput("");
-  };
+  const HomeRoute = () => <Homepage todos={todos} setTodos={setTodos}></Homepage>;
 
-  const handleDelete = (id) => {
-    setTodos(todos.filter((task) => task.id !== id));
-  };
-
-  const handleShowEdit = (id) => {
-    const selectedTodo = todos.find((todo) => todo.id === id);
-    setShowEdit(false);
-    setEditInput(selectedTodo);
-  };
-
-  const handleEdit = () => {
-    const updatedTodos = todos.map((todo) =>
-      todo.id === editInput.id ? editInput : todo
-    );
-    setTodos(updatedTodos);
-    setShowEdit(true);
-    setEditInput({});
-  };
-
-  const handleComplete = (id, complete) => {
-    const updatedTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, complete: complete } : todo
-    );
-    setTodos(updatedTodos);
-  };
+  const renderScene = BottomNavigation.SceneMap({
+    home: HomeRoute,
+    achievements: AlbumsRoute,
+    calendar: RecentsRoute,
+  });
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Todo List</Text>
-      <View>
-        <TextInput
-          style={styles.input}
-          placeholder="Add your task"
-          value={input}
-          onChangeText={(text) => setInput(text)}
-        />
-        <View style={styles.buttonContainer}>
-          <Button title="Submit" onPress={handleSubmit} />
-        </View>
-      </View>
-      {!showEdit && (
-        <View>
-          <TextInput
-            style={styles.input}
-            placeholder="Edit task"
-            value={editInput.value}
-            onChangeText={(text) =>
-              setEditInput({ ...editInput, value: text })
-            }
-          />
-          <View style={styles.buttonContainer}>
-            <Button title="Edit" onPress={handleEdit} />
-          </View>
-        </View>
-      )}
-      <FlatList
-        data={todos}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.todoItem}>
-            <CheckBox
-              style={styles.checkbox}
-              value={item.complete}
-              onValueChange={(value) => handleComplete(item.id, value)}
-            />
-            <Text style={item.complete ? styles.completedText : {}}>
-              {item.value}
-            </Text>
-            <View style={styles.buttonContainer}>
-              <Button title="Edit" onPress={() => handleShowEdit(item.id)} />
-              <Button title="Delete" onPress={() => handleDelete(item.id)} />
-            </View>
-          </View>
-        )}
+    <PaperProvider theme={theme}>
+      <BottomNavigation
+        navigationState={{ index, routes }}
+        onIndexChange={setIndex}
+        renderScene={renderScene}
       />
-    </View>
+    </PaperProvider>
   );
 }
 
