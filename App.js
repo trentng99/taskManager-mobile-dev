@@ -13,7 +13,7 @@ const AlbumsRoute = () => <Text>Albums</Text>;
 const RecentsRoute = () => <Text>Recents</Text>;
 
 export default function App() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState([{ id: 0, value: 'test 1', complete: false }]);
   const [index, setIndex] = React.useState(0);
   const theme = {...DefaultTheme};
 

@@ -10,9 +10,8 @@ import {
   PaperProvider,
   Button,
 } from "react-native-paper";
-import { Calendar } from "react-native-calendars";
 
-let id = 1;
+let id = 0;
 
 export default function Homepage({ todos, setTodos }) {
   const [input, setInput] = useState("");
@@ -22,17 +21,17 @@ export default function Homepage({ todos, setTodos }) {
   const [addTaskVisible, setAddTaskVisible] = React.useState(false);
 
   const showDialog = (type) => {
-    if (type === "addTask") {
-      setAddTaskVisible(!addTaskVisible);
-    } else if (type === "calendar") {
+    if(type === 'addTask') {
+      setAddTaskVisible(!addTaskVisible)
+    }
+    else if (type === 'calendar') {
       setDateVisible(!dateVisible);
     }
-  };
+  } 
 
   const handleSubmit = () => {
     setTodos([...todos, { id: id++, value: input, complete: false }]);
     setInput("");
-    setAddTaskVisible(!addTaskVisible);
   };
 
   const handleDelete = (id) => {
@@ -54,9 +53,9 @@ export default function Homepage({ todos, setTodos }) {
     setEditInput({});
   };
 
-  const handleComplete = (id) => {
+  const handleComplete = (id, complete) => {
     const updatedTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, complete: !todo.complete } : todo
+      todo.id === id ? { ...todo, complete: complete } : todo
     );
     setTodos(updatedTodos);
   };
@@ -76,7 +75,7 @@ export default function Homepage({ todos, setTodos }) {
       >
         <Text>Task Lists For:</Text>
         <Button
-          onPress={() => showDialog("calendar")}
+          onPress={() => showDialog('calendar')}
           style={{ flex: 0 }}
           mode="contained"
           compact
@@ -84,19 +83,27 @@ export default function Homepage({ todos, setTodos }) {
           {new Date().toDateString()}
         </Button>
         <Portal>
-          <Dialog
-            visible={dateVisible}
-            onDismiss={() => showDialog("calendar")}
-          >
+          <Dialog visible={dateVisible} onDismiss={() => showDialog('calendar')}>
             <Dialog.Title>Calender</Dialog.Title>
             <Dialog.Content>
-              <Calendar></Calendar>
+              <Text variant="bodyMedium">This is simple calendar</Text>
             </Dialog.Content>
             <Dialog.Actions>
-              <Button onPress={() => showDialog("calendar")}>Done</Button>
+              <Button onPress={() => showDialog('calendar')}>Done</Button>
             </Dialog.Actions>
           </Dialog>
         </Portal>
+      </View>
+      <View>
+        <TextInput
+          style={styles.input}
+          placeholder="Add your task"
+          value={input}
+          onChangeText={(text) => setInput(text)}
+        />
+        <View style={styles.buttonContainer}>
+          <Button title="Submit" onPress={handleSubmit} />
+        </View>
       </View>
       {!showEdit && (
         <View>
@@ -118,8 +125,8 @@ export default function Homepage({ todos, setTodos }) {
           <View style={styles.todoItem}>
             <Checkbox
               style={styles.checkbox}
-              status={item.complete ? 'checked' : 'unchecked'}
-              onPress={(value) => handleComplete(item.id)}
+              value={item.complete}
+              onValueChange={(value) => handleComplete(item.id, value)}
             />
             <Text style={item.complete ? styles.completedText : {}}>
               {item.value}
@@ -134,22 +141,16 @@ export default function Homepage({ todos, setTodos }) {
       <FAB
         icon="plus"
         style={styles.fab}
-        onPress={() => showDialog("addTask")}
+        onPress={() => showDialog('addTask')}
       />
-      <Dialog visible={addTaskVisible} onDismiss={() => showDialog("addTask")}>
+      <Dialog visible={addTaskVisible} onDismiss={() => showDialog('addTask')}>
         <Dialog.Title>Add Task</Dialog.Title>
         <Dialog.Content>
-          <TextInput
-            style={styles.input}
-            placeholder="Add your task"
-            value={input}
-            onChangeText={(text) => setInput(text)}
-          />
+          <Text variant="bodyMedium">This is simple add task</Text>
         </Dialog.Content>
         <Dialog.Actions>
-          <Button onPress={handleSubmit} type="submit" >Add Task</Button>
+          <Button onPress={() => showDialog('addTask')}>Done</Button>
         </Dialog.Actions>
-        <View></View>
       </Dialog>
     </View>
   );
