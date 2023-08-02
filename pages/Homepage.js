@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { StyleSheet, View, TextInput, FlatList } from "react-native";
+import { StyleSheet, View, FlatList } from "react-native";
 import {
   Checkbox,
+  TextInput,
   FAB,
   Text,
   Portal,
@@ -9,6 +10,7 @@ import {
   Provider,
   PaperProvider,
   Button,
+  List,
 } from "react-native-paper";
 import { Calendar } from "react-native-calendars";
 
@@ -16,16 +18,22 @@ let id = 1;
 
 export default function Homepage({ todos, setTodos }) {
   const [input, setInput] = useState("");
-  const [showEdit, setShowEdit] = useState(true);
   const [editInput, setEditInput] = useState({});
   const [dateVisible, setDateVisible] = React.useState(false);
   const [addTaskVisible, setAddTaskVisible] = React.useState(false);
+  const [editTaskVisible, setEditTaskVisible] = React.useState(false);
 
-  const showDialog = (type) => {
+  const showDialog = (type, id) => {
     if (type === "addTask") {
       setAddTaskVisible(!addTaskVisible);
     } else if (type === "calendar") {
       setDateVisible(!dateVisible);
+    } else if (type === "editTask") {
+      setEditTaskVisible(!editTaskVisible);
+      const selectedTodo = todos.find((todo) => todo.id === id);
+      if (selectedTodo) {
+        setEditInput(selectedTodo);
+      }
     }
   };
 
@@ -39,18 +47,11 @@ export default function Homepage({ todos, setTodos }) {
     setTodos(todos.filter((task) => task.id !== id));
   };
 
-  const handleShowEdit = (id) => {
-    const selectedTodo = todos.find((todo) => todo.id === id);
-    setShowEdit(false);
-    setEditInput(selectedTodo);
-  };
-
   const handleEdit = () => {
     const updatedTodos = todos.map((todo) =>
       todo.id === editInput.id ? editInput : todo
     );
     setTodos(updatedTodos);
-    setShowEdit(true);
     setEditInput({});
   };
 
@@ -83,74 +84,93 @@ export default function Homepage({ todos, setTodos }) {
         >
           {new Date().toDateString()}
         </Button>
-        <Portal>
-          <Dialog
-            visible={dateVisible}
-            onDismiss={() => showDialog("calendar")}
-          >
-            <Dialog.Title>Calender</Dialog.Title>
-            <Dialog.Content>
-              <Calendar></Calendar>
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button onPress={() => showDialog("calendar")}>Done</Button>
-            </Dialog.Actions>
-          </Dialog>
-        </Portal>
       </View>
-      {!showEdit && (
-        <View>
-          <TextInput
-            style={styles.input}
-            placeholder="Edit task"
-            value={editInput.value}
-            onChangeText={(text) => setEditInput({ ...editInput, value: text })}
-          />
-          <View style={styles.buttonContainer}>
-            <Button title="Edit" onPress={handleEdit} />
-          </View>
-        </View>
-      )}
       <FlatList
         data={todos}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.todoItem}>
-            <Checkbox
-              style={styles.checkbox}
-              status={item.complete ? 'checked' : 'unchecked'}
-              onPress={(value) => handleComplete(item.id)}
-            />
-            <Text style={item.complete ? styles.completedText : {}}>
-              {item.value}
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Checkbox
+                style={styles.checkbox}
+                status={item.complete ? "checked" : "unchecked"}
+                onPress={(value) => handleComplete(item.id)}
+              />
+              <Text style={item.complete ? styles.completedText : {}}>
+                {item.value}
+              </Text>
+            </View>
             <View style={styles.buttonContainer}>
-              <Button title="Edit" onPress={() => handleShowEdit(item.id)} />
-              <Button title="Delete" onPress={() => handleDelete(item.id)} />
+              <Button
+                mode="text"
+                onPress={() => showDialog("editTask", item.id)}
+                icon="pencil"
+              ></Button>
+              <Button
+                mode="text"
+                onPress={() => handleDelete(item.id)}
+                icon="trash-can-outline"
+              ></Button>
             </View>
           </View>
         )}
       />
+      <Portal>
+        <Dialog
+          visible={addTaskVisible}
+          onDismiss={() => showDialog("addTask")}
+        >
+          <Dialog.Title>Add Task</Dialog.Title>
+          <Dialog.Content>
+            <TextInput
+              mode="outlined"
+              label="Add your task"
+              value={input}
+              onChangeText={(text) => setInput(text)}
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={handleSubmit} type="submit">
+              Add Task
+            </Button>
+          </Dialog.Actions>
+          <View></View>
+        </Dialog>
+        <Dialog
+          visible={editTaskVisible}
+          onDismiss={() => showDialog("editTask")}
+        >
+          <Dialog.Title>Edit Task</Dialog.Title>
+          <Dialog.Content>
+            <TextInput
+              mode="outlined"
+              label="Edit task"
+              value={editInput.value}
+              onChangeText={(text) =>
+                setEditInput({ ...editInput, value: text })
+              }
+            />
+          </Dialog.Content>
+          <Dialog.Actions style={styles.buttonContainer}>
+            <Button onPress={handleEdit}>Edit Task</Button>
+          </Dialog.Actions>
+        </Dialog>
+        <Dialog visible={dateVisible} onDismiss={() => showDialog("calendar")}>
+          <Dialog.Title>Calender</Dialog.Title>
+          <Dialog.Content>
+            <Calendar></Calendar>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => showDialog("calendar")}>Done</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
       <FAB
         icon="plus"
         style={styles.fab}
         onPress={() => showDialog("addTask")}
       />
-      <Dialog visible={addTaskVisible} onDismiss={() => showDialog("addTask")}>
-        <Dialog.Title>Add Task</Dialog.Title>
-        <Dialog.Content>
-          <TextInput
-            style={styles.input}
-            placeholder="Add your task"
-            value={input}
-            onChangeText={(text) => setInput(text)}
-          />
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={handleSubmit} type="submit" >Add Task</Button>
-        </Dialog.Actions>
-        <View></View>
-      </Dialog>
     </View>
   );
 }
@@ -158,7 +178,7 @@ export default function Homepage({ todos, setTodos }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    margin: "10px",
   },
   heading: {
     fontWeight: "bold",
@@ -174,17 +194,20 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 8,
+  },
+  checkbox: {
+    borderRadius: "100",
   },
   todoItem: {
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: "12px",
     marginBottom: 8,
-  },
-  checkbox: {
-    marginRight: 8,
-    width: 20,
-    height: 20,
+    height: "60px",
+    boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+    borderRadius: 10,
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
   },
   completedText: {
     textDecorationLine: "line-through",

@@ -5,10 +5,8 @@ import {
 } from "react-native";
 import { BottomNavigation, PaperProvider, useTheme, DefaultTheme } from "react-native-paper";
 import Homepage from "./pages/Homepage";
-
-const MusicRoute = () => <Text>Music</Text>;
-
-const AlbumsRoute = () => <Text>Albums</Text>;
+import Calendar from "./pages/Calendar";
+import Achievements from "./pages/Achievements";
 
 const RecentsRoute = () => <Text>Recents</Text>;
 
@@ -39,11 +37,14 @@ export default function App() {
   ]);
 
   const HomeRoute = () => <Homepage todos={todos} setTodos={setTodos}></Homepage>;
+  const CalendarRoute = () => <Calendar todos={todos} setTodos={setTodos}></Calendar>;
+  const AchievementsRoute = () => <Achievements todos={todos} setTodos={setTodos}></Achievements>;
+
 
   const renderScene = BottomNavigation.SceneMap({
     home: HomeRoute,
-    achievements: AlbumsRoute,
-    calendar: RecentsRoute,
+    achievements: AchievementsRoute,
+    calendar: CalendarRoute,
   });
 
   return (
