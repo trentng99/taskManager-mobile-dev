@@ -11,6 +11,7 @@ import {
   PaperProvider,
   Button,
   List,
+  Divider,
 } from "react-native-paper";
 import { Calendar } from "react-native-calendars";
 
@@ -85,36 +86,80 @@ export default function Homepage({ todos, setTodos }) {
           {new Date().toDateString()}
         </Button>
       </View>
+      {/* Uncompleted Task */}
+      <View>
+        <FlatList
+          data={todos}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) =>
+            !item.complete && (
+              <View style={styles.todoItem}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Checkbox
+                    style={styles.checkbox}
+                    status={item.complete ? "checked" : "unchecked"}
+                    onPress={(value) => handleComplete(item.id)}
+                  />
+                  <Text style={item.complete ? styles.completedText : {}}>
+                    {item.value}
+                  </Text>
+                </View>
+                <View style={styles.buttonContainer}>
+                  <Button
+                    mode="text"
+                    onPress={() => showDialog("editTask", item.id)}
+                    style={item.complete ? { display: "none" } : {}}
+                    icon="pencil"
+                  ></Button>
+                  <Button
+                    mode="text"
+                    onPress={() => handleDelete(item.id)}
+                    style={item.complete ? { display: "none" } : {}}
+                    icon="trash-can-outline"
+                  ></Button>
+                </View>
+              </View>
+            )
+          }
+        />
+      </View>
+      <Divider style={{ marginVertical: "16px" }} />
+      {/* Completed Task */}
       <FlatList
         data={todos}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.todoItem}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Checkbox
-                style={styles.checkbox}
-                status={item.complete ? "checked" : "unchecked"}
-                onPress={(value) => handleComplete(item.id)}
-              />
-              <Text style={item.complete ? styles.completedText : {}}>
-                {item.value}
-              </Text>
+        renderItem={({ item }) =>
+          item.complete && (
+            <View style={styles.todoItem}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <Checkbox
+                  style={styles.checkbox}
+                  status={item.complete ? "checked" : "unchecked"}
+                  onPress={(value) => handleComplete(item.id)}
+                />
+                <Text style={item.complete ? styles.completedText : {}}>
+                  {item.value}
+                </Text>
+              </View>
+              <View style={styles.buttonContainer}>
+                <Button
+                  mode="text"
+                  onPress={() => showDialog("editTask", item.id)}
+                  style={item.complete ? { display: "none" } : {}}
+                  icon="pencil"
+                ></Button>
+                <Button
+                  mode="text"
+                  onPress={() => handleDelete(item.id)}
+                  style={item.complete ? { display: "none" } : {}}
+                  icon="trash-can-outline"
+                ></Button>
+              </View>
             </View>
-            <View style={styles.buttonContainer}>
-              <Button
-                mode="text"
-                onPress={() => showDialog("editTask", item.id)}
-                icon="pencil"
-              ></Button>
-              <Button
-                mode="text"
-                onPress={() => handleDelete(item.id)}
-                icon="trash-can-outline"
-              ></Button>
-            </View>
-          </View>
-        )}
+          )
+        }
       />
+      {/* Add Task Dialog */}
       <Portal>
         <Dialog
           visible={addTaskVisible}
@@ -124,10 +169,30 @@ export default function Homepage({ todos, setTodos }) {
           <Dialog.Content>
             <TextInput
               mode="outlined"
-              label="Add your task"
+              label="Task"
+              placeholder="Add Task"
               value={input}
               onChangeText={(text) => setInput(text)}
             />
+            <TextInput
+              mode="outlined"
+              label="Description"
+              placeholder="Description..."
+              value={input}
+              onChangeText={(text) => setInput(text)}
+              />
+              <TextInput
+                mode="outlined"
+                label="Start Date"
+                value={input}
+                onChangeText={(text) => setInput(text)}
+              />
+              <TextInput
+                mode="outlined"
+                label="End Date"
+                value={input}
+                onChangeText={(text) => setInput(text)}
+              />
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={handleSubmit} type="submit">
