@@ -19,6 +19,9 @@ let id = 1;
 
 export default function Homepage({ todos, setTodos }) {
   const [input, setInput] = useState("");
+  const [description, setDescription] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [editInput, setEditInput] = useState({});
   const [dateVisible, setDateVisible] = React.useState(false);
   const [addTaskVisible, setAddTaskVisible] = React.useState(false);
@@ -39,7 +42,7 @@ export default function Homepage({ todos, setTodos }) {
   };
 
   const handleSubmit = () => {
-    setTodos([...todos, { id: id++, value: input, complete: false }]);
+    setTodos([...todos, { id: id++, value: input, description: description, startDate: startDate, endDate: endDate, complete: false }]);
     setInput("");
     setAddTaskVisible(!addTaskVisible);
   };
@@ -166,7 +169,7 @@ export default function Homepage({ todos, setTodos }) {
           onDismiss={() => showDialog("addTask")}
         >
           <Dialog.Title>Add Task</Dialog.Title>
-          <Dialog.Content>
+          <Dialog.Content style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
             <TextInput
               mode="outlined"
               label="Task"
@@ -178,20 +181,20 @@ export default function Homepage({ todos, setTodos }) {
               mode="outlined"
               label="Description"
               placeholder="Description..."
-              value={input}
-              onChangeText={(text) => setInput(text)}
+              value={description}
+              onChangeText={(text) => setDescription(text)}
               />
               <TextInput
                 mode="outlined"
                 label="Start Date"
-                value={input}
-                onChangeText={(text) => setInput(text)}
+                value={startDate}
+                onChangeText={(text) => setStartDate(text)}
               />
               <TextInput
                 mode="outlined"
                 label="End Date"
-                value={input}
-                onChangeText={(text) => setInput(text)}
+                value={endDate}
+                onChangeText={(text) => setEndDate(text)}
               />
           </Dialog.Content>
           <Dialog.Actions>
