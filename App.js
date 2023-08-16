@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { StyleSheet, Text } from "react-native";
 import {
-  StyleSheet,
-  Text,
-} from "react-native";
-import { BottomNavigation, PaperProvider, useTheme, DefaultTheme } from "react-native-paper";
+  BottomNavigation,
+  PaperProvider,
+  useTheme,
+  DefaultTheme,
+} from "react-native-paper";
 import Homepage from "./pages/Homepage";
 import Calendar from "./pages/Calendar";
 import Achievements from "./pages/Achievements";
@@ -11,9 +13,18 @@ import Achievements from "./pages/Achievements";
 const RecentsRoute = () => <Text>Recents</Text>;
 
 export default function App() {
-  const [todos, setTodos] = useState([{ id: 0, value: 'test 1', complete: false }]);
+  const [todos, setTodos] = useState([
+    {
+      id: 0,
+      value: "test 1",
+      complete: false,
+      description: "some description",
+      startDate: "12/08/23",
+      endDate: "23/08/23",
+    },
+  ]);
   const [index, setIndex] = React.useState(0);
-  const theme = {...DefaultTheme};
+  const theme = { ...DefaultTheme };
 
   const [routes] = React.useState([
     {
@@ -36,10 +47,15 @@ export default function App() {
     },
   ]);
 
-  const HomeRoute = () => <Homepage todos={todos} setTodos={setTodos}></Homepage>;
-  const CalendarRoute = () => <Calendar todos={todos} setTodos={setTodos}></Calendar>;
-  const AchievementsRoute = () => <Achievements todos={todos} setTodos={setTodos}></Achievements>;
-
+  const HomeRoute = () => (
+    <Homepage todos={todos} setTodos={setTodos}></Homepage>
+  );
+  const CalendarRoute = () => (
+    <Calendar todos={todos} setTodos={setTodos}></Calendar>
+  );
+  const AchievementsRoute = () => (
+    <Achievements todos={todos} setTodos={setTodos}></Achievements>
+  );
 
   const renderScene = BottomNavigation.SceneMap({
     home: HomeRoute,

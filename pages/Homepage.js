@@ -14,6 +14,7 @@ import {
   Divider,
 } from "react-native-paper";
 import { Calendar } from "react-native-calendars";
+import TaskItem from "../components/TaskItem";
 
 let id = 1;
 
@@ -28,16 +29,22 @@ export default function Homepage({ todos, setTodos }) {
   const [editTaskVisible, setEditTaskVisible] = React.useState(false);
 
   const showDialog = (type, id) => {
-    if (type === "addTask") {
-      setAddTaskVisible(!addTaskVisible);
-    } else if (type === "calendar") {
-      setDateVisible(!dateVisible);
-    } else if (type === "editTask") {
-      setEditTaskVisible(!editTaskVisible);
-      const selectedTodo = todos.find((todo) => todo.id === id);
-      if (selectedTodo) {
-        setEditInput(selectedTodo);
-      }
+    switch (type) {
+      case "addTask":
+        setAddTaskVisible(!addTaskVisible);
+        break;
+      case "calendar":
+        setDateVisible(!dateVisible);
+        break;
+      case "editTask":
+        setEditTaskVisible(!editTaskVisible);
+        const selectedTodo = todos.find((todo) => todo.id === id);
+        if (selectedTodo) {
+          setEditInput(selectedTodo);
+        }
+        break;
+      default:
+        break;
     }
   };
 
@@ -47,11 +54,14 @@ export default function Homepage({ todos, setTodos }) {
     setAddTaskVisible(!addTaskVisible);
   };
 
+  const date = new Date()
+
   const handleDelete = (id) => {
     setTodos(todos.filter((task) => task.id !== id));
   };
 
   const handleEdit = () => {
+    console.log(editInput.id)
     const updatedTodos = todos.map((todo) =>
       todo.id === editInput.id ? editInput : todo
     );
@@ -65,24 +75,17 @@ export default function Homepage({ todos, setTodos }) {
     );
     setTodos(updatedTodos);
   };
-
   return (
     <View style={styles.container}>
-      <Text variant="headlineLarge" style={styles.heading}>
-        Hey There!
+      <Text style={styles.heading}>Hey There!</Text>
+      <Text>
+        {date.getDate()}/{date.getMonth()}/{date.getFullYear()}
       </Text>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: "16px",
-          marginVertical: "10px",
-        }}
-      >
+      <View style={styles.dateContainer}>
         <Text>Task Lists For:</Text>
         <Button
           onPress={() => showDialog("calendar")}
-          style={{ flex: 0 }}
+          style={styles.dateButton}
           mode="contained"
           compact
         >
@@ -96,82 +99,42 @@ export default function Homepage({ todos, setTodos }) {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) =>
             !item.complete && (
-              <View style={styles.todoItem}>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Checkbox
-                    style={styles.checkbox}
-                    status={item.complete ? "checked" : "unchecked"}
-                    onPress={(value) => handleComplete(item.id)}
-                  />
-                  <Text style={item.complete ? styles.completedText : {}}>
-                    {item.value}
-                  </Text>
-                </View>
-                <View style={styles.buttonContainer}>
-                  <Button
-                    mode="text"
-                    onPress={() => showDialog("editTask", item.id)}
-                    style={item.complete ? { display: "none" } : {}}
-                    icon="pencil"
-                  ></Button>
-                  <Button
-                    mode="text"
-                    onPress={() => handleDelete(item.id)}
-                    style={item.complete ? { display: "none" } : {}}
-                    icon="trash-can-outline"
-                  ></Button>
-                </View>
-              </View>
+              <TaskItem
+                item={item}
+                handleComplete={handleComplete}
+                showDialog={showDialog}
+                handleDelete={handleDelete}
+              />
             )
           }
         />
       </View>
-      <Divider style={{ marginVertical: "16px" }} />
       {/* Completed Task */}
       <FlatList
         data={todos}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) =>
           item.complete && (
-            <View style={styles.todoItem}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Checkbox
-                  style={styles.checkbox}
-                  status={item.complete ? "checked" : "unchecked"}
-                  onPress={(value) => handleComplete(item.id)}
-                />
-                <Text style={item.complete ? styles.completedText : {}}>
-                  {item.value}
-                </Text>
-              </View>
-              <View style={styles.buttonContainer}>
-                <Button
-                  mode="text"
-                  onPress={() => showDialog("editTask", item.id)}
-                  style={item.complete ? { display: "none" } : {}}
-                  icon="pencil"
-                ></Button>
-                <Button
-                  mode="text"
-                  onPress={() => handleDelete(item.id)}
-                  style={item.complete ? { display: "none" } : {}}
-                  icon="trash-can-outline"
-                ></Button>
-              </View>
-            </View>
+            <TaskItem
+              item={item}
+              handleComplete={handleComplete}
+              showDialog={showDialog}
+              handleDelete={handleDelete}
+            />
           )
         }
       />
-      {/* Add Task Dialog */}
       <Portal>
+        {/* Add Task Dialog */}
         <Dialog
           visible={addTaskVisible}
           onDismiss={() => showDialog("addTask")}
         >
           <Dialog.Title>Add Task</Dialog.Title>
-          <Dialog.Content style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+          <Dialog.Content style={styles.dialogContent}>
             <TextInput
               mode="outlined"
+              style={styles.inputContainer}
               label="Task"
               placeholder="Add Task"
               value={input}
@@ -179,23 +142,26 @@ export default function Homepage({ todos, setTodos }) {
             />
             <TextInput
               mode="outlined"
+              style={styles.inputContainer}
               label="Description"
               placeholder="Description..."
               value={description}
               onChangeText={(text) => setDescription(text)}
-              />
-              <TextInput
-                mode="outlined"
-                label="Start Date"
-                value={startDate}
-                onChangeText={(text) => setStartDate(text)}
-              />
-              <TextInput
-                mode="outlined"
-                label="End Date"
-                value={endDate}
-                onChangeText={(text) => setEndDate(text)}
-              />
+            />
+            <TextInput
+              mode="outlined"
+              style={styles.inputContainer}
+              label="Start Date"
+              value={startDate}
+              onChangeText={(text) => setStartDate(text)}
+            />
+            <TextInput
+              mode="outlined"
+              style={styles.inputContainer}
+              label="End Date"
+              value={endDate}
+              onChangeText={(text) => setEndDate(text)}
+            />
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={handleSubmit} type="submit">
@@ -218,6 +184,30 @@ export default function Homepage({ todos, setTodos }) {
                 setEditInput({ ...editInput, value: text })
               }
             />
+            <TextInput
+              mode="outlined"
+              label="Edit Description"
+              value={editInput.description}
+              onChangeText={(text) =>
+                setEditInput({ ...editInput, description: text })
+              }
+            />
+            <TextInput
+              mode="outlined"
+              label="Change Start Date"
+              value={editInput.startDate}
+              onChangeText={(text) =>
+                setEditInput({ ...editInput, startDate: text })
+              }
+            />
+            <TextInput
+              mode="outlined"
+              label="Change End Date"
+              value={editInput.endDate}
+              onChangeText={(text) =>
+                setEditInput({ ...editInput, endDate: text })
+              }
+            />
           </Dialog.Content>
           <Dialog.Actions style={styles.buttonContainer}>
             <Button onPress={handleEdit}>Edit Task</Button>
@@ -233,7 +223,6 @@ export default function Homepage({ todos, setTodos }) {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-
       <FAB
         icon="plus"
         style={styles.fab}
@@ -246,39 +235,44 @@ export default function Homepage({ todos, setTodos }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    margin: "10px",
+    margin: 20,
   },
   heading: {
     fontWeight: "bold",
+    fontSize: 40,
     marginBottom: 16,
   },
-  input: {
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 8,
-    padding: 8,
-  },
-  buttonContainer: {
+  dateContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
   },
-  checkbox: {
-    borderRadius: "100",
+  dateButton: {
+    flex: 0,
+  },
+  divider: {
+    marginVertical: 16,
   },
   todoItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: "12px",
+    paddingHorizontal: 12,
     marginBottom: 8,
-    height: "60px",
-    boxShadow: "rgba(99, 99, 99, 0.2) 0px 2px 8px 0px",
+    height: 60,
+    elevation: 2,
     borderRadius: 10,
-    justifyContent: "space-between",
     backgroundColor: "#fff",
+    justifyContent: "space-between",
+  },
+  todoItemContent: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   completedText: {
     textDecorationLine: "line-through",
+  },
+  dialogContent: {
+    flexDirection: 'column',
   },
   fab: {
     position: "absolute",
