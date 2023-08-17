@@ -15,13 +15,14 @@ import {
 } from "react-native-paper";
 import { Calendar } from "react-native-calendars";
 import TaskItem from "../components/TaskItem";
+import DatePicker from 'react-native-datepicker'
 
 let id = 1;
 
 export default function Homepage({ todos, setTodos }) {
   const [input, setInput] = useState("");
   const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState("2016-05-15");
   const [endDate, setEndDate] = useState("");
   const [editInput, setEditInput] = useState({});
   const [dateVisible, setDateVisible] = React.useState(false);
@@ -154,6 +155,30 @@ export default function Homepage({ todos, setTodos }) {
               label="Start Date"
               value={startDate}
               onChangeText={(text) => setStartDate(text)}
+            />
+            <DatePicker
+              style={{width: 200}}
+              date={startDate}
+              mode="date"
+              placeholder="select date"
+              format="YYYY-MM-DD"
+              minDate="2016-05-01"
+              maxDate="2016-06-01"
+              confirmBtnText="Confirm"
+              cancelBtnText="Cancel"
+              customStyles={{
+                dateIcon: {
+                  position: 'absolute',
+                  left: 0,
+                  top: 4,
+                  marginLeft: 0
+                },
+                dateInput: {
+                  marginLeft: 36
+                }
+                // ... You can check the source to find the other keys.
+              }}
+              onDateChange={(date) => {setStartDate(date)}}
             />
             <TextInput
               mode="outlined"
