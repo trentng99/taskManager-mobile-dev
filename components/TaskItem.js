@@ -1,6 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Checkbox, Text, Button } from "react-native-paper";
+import { formatDate } from "../commons/formatDate";
 
 const TaskItem = ({ item, handleComplete, handleDelete, showDialog }) => (
   <View style={styles.todoItem}>
@@ -16,7 +17,7 @@ const TaskItem = ({ item, handleComplete, handleDelete, showDialog }) => (
         </Text>
         {!item.complete && (
           <>
-            <Text style={styles.dueDate}>{item.endDate}</Text>
+            <Text style={styles.dueDate}>Due Date: {formatDate(item.endDate)}</Text>
           </>
         )}
       </View>

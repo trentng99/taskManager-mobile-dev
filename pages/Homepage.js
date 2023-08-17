@@ -15,19 +15,31 @@ import {
 } from "react-native-paper";
 import { Calendar } from "react-native-calendars";
 import TaskItem from "../components/TaskItem";
-import DatePicker from 'react-native-datepicker'
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 let id = 1;
 
 export default function Homepage({ todos, setTodos }) {
   const [input, setInput] = useState("");
   const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState("2016-05-15");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
   const [editInput, setEditInput] = useState({});
   const [dateVisible, setDateVisible] = React.useState(false);
   const [addTaskVisible, setAddTaskVisible] = React.useState(false);
   const [editTaskVisible, setEditTaskVisible] = React.useState(false);
+  const [mode, setMode] = useState('date');
+  const [show, setShow] = useState(false);
+
+  const onChangeStartDate = (event, selectedDate, test) => {
+    setShow(false);
+    setStartDate(selectedDate);
+  };
+
+  const onChangeEndDate = (event, selectedDate, test) => {
+    setShow(false);
+    setEndDate(selectedDate);
+  };
 
   const showDialog = (type, id) => {
     switch (type) {
@@ -44,6 +56,9 @@ export default function Homepage({ todos, setTodos }) {
           setEditInput(selectedTodo);
         }
         break;
+      case "datePicker":
+        setShow(true)
+        break;
       default:
         break;
     }
@@ -54,8 +69,6 @@ export default function Homepage({ todos, setTodos }) {
     setInput("");
     setAddTaskVisible(!addTaskVisible);
   };
-
-  const date = new Date()
 
   const handleDelete = (id) => {
     setTodos(todos.filter((task) => task.id !== id));
@@ -78,9 +91,9 @@ export default function Homepage({ todos, setTodos }) {
   };
   return (
     <View style={styles.container}>
+      <Text>hello</Text>
       <Text style={styles.heading}>Hey There!</Text>
       <Text>
-        {date.getDate()}/{date.getMonth()}/{date.getFullYear()}
       </Text>
       <View style={styles.dateContainer}>
         <Text>Task Lists For:</Text>
@@ -149,44 +162,30 @@ export default function Homepage({ todos, setTodos }) {
               value={description}
               onChangeText={(text) => setDescription(text)}
             />
-            <TextInput
-              mode="outlined"
-              style={styles.inputContainer}
-              label="Start Date"
-              value={startDate}
-              onChangeText={(text) => setStartDate(text)}
-            />
-            <DatePicker
-              style={{width: 200}}
-              date={startDate}
-              mode="date"
-              placeholder="select date"
-              format="YYYY-MM-DD"
-              minDate="2016-05-01"
-              maxDate="2016-06-01"
-              confirmBtnText="Confirm"
-              cancelBtnText="Cancel"
-              customStyles={{
-                dateIcon: {
-                  position: 'absolute',
-                  left: 0,
-                  top: 4,
-                  marginLeft: 0
-                },
-                dateInput: {
-                  marginLeft: 36
-                }
-                // ... You can check the source to find the other keys.
-              }}
-              onDateChange={(date) => {setStartDate(date)}}
-            />
-            <TextInput
-              mode="outlined"
-              style={styles.inputContainer}
-              label="End Date"
-              value={endDate}
-              onChangeText={(text) => setEndDate(text)}
-            />
+            <View style={styles.inputContainer}>
+              <Text>Set Start Date</Text>
+              <Button mode="contained" onPress={() => showDialog("datePicker")}>{startDate.toLocaleString()}</Button>
+              {show && (
+                <DateTimePicker
+                  testID="dateTimePicker"
+                  value={startDate}
+                  mode={mode}
+                  onChange={onChangeStartDate}
+                />
+              )}
+            </View>
+            <View style={styles.inputContainer}>
+              <Text>Set End Date</Text>
+              <Button mode="contained" onPress={() => showDialog("datePicker")}>{endDate.toLocaleString()}</Button>
+              {show && (
+                <DateTimePicker
+                  testID="dateTimePicker"
+                  value={endDate}
+                  mode={mode}
+                  onChange={onChangeEndDate}
+                />
+              )}
+            </View>
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={handleSubmit} type="submit">
@@ -305,4 +304,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+  inputContainer: {
+    marginBottom: 10
+  }
 });
