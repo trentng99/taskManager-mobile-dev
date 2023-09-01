@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text } from "react-native";
 import {
   BottomNavigation,
@@ -9,23 +9,51 @@ import {
 import Homepage from "./pages/Homepage";
 import Calendar from "./pages/Calendar";
 import Achievements from "./pages/Achievements";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function App() {
-  const [todos, setTodos] = useState([
-    {
-      id: 0,
-      value: "test 1",
-      complete: false,
-      description: "some description",
-      startDate: "2023-09-01",
-      endDate: "2023-09-10",
-    },
-  ]);
+  const theme = { ...DefaultTheme };
+
+  const [todos, setTodos] = useState([]);
   const [index, setIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
-  const theme = { ...DefaultTheme };
+
+  useEffect(() => {
+    const loadTasksFromStorage = async () => {
+      try {
+        const jsonTasks = await AsyncStorage.getItem("tasks");
+        setTodos(
+          jsonTasks
+            ? JSON.parse(jsonTasks)
+            : [
+                {
+                  id: 0,
+                  value: "test 1",
+                  complete: false,
+                  description: "some description",
+                  startDate: "2023-09-01",
+                  endDate: "2023-09-10",
+                },
+              ]
+        );
+      } catch (error) {
+        console.error("Error loading tasks from AsyncStorage: ", error);
+      }
+    };
+
+    loadTasksFromStorage();
+  }, []);
+
+  const saveTasksToStorage = async (tasks) => {
+    try {
+      const jsonTasks = JSON.stringify(tasks);
+      await AsyncStorage.setItem("tasks", jsonTasks);
+    } catch (error) {
+      console.error("Error saving tasks to AsyncStorage: ", error);
+    }
+  };
 
   const [routes] = useState([
     {
@@ -54,6 +82,7 @@ export default function App() {
       setTodos={setTodos}
       selectedDate={selectedDate}
       setSelectedDate={setSelectedDate}
+      saveTasksToStorage={saveTasksToStorage}
     ></Homepage>
   );
   const CalendarRoute = () => (

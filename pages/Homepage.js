@@ -17,6 +17,7 @@ import { Calendar } from "react-native-calendars";
 import TaskItem from "../components/TaskItem";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { formatDate } from "../commons/formatDate";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 let id = 1;
 
@@ -25,6 +26,8 @@ export default function Homepage({
   setTodos,
   selectedDate,
   setSelectedDate,
+  saveTasksToStorage,
+  loadTasksFromStorage,
 }) {
   const [input, setInput] = useState("");
   const [description, setDescription] = useState("");
@@ -85,17 +88,21 @@ export default function Homepage({
   };
 
   const handleSubmit = () => {
-    setTodos([
-      ...todos,
-      {
-        id: id++,
-        value: input,
-        description: description,
-        startDate: formatDate(addTaskStartDate),
-        endDate: formatDate(addTaskEndDate),
-        complete: false,
-      },
-    ]);
+    const newTask = {
+      id: id++,
+      value: input,
+      description: description,
+      startDate: formatDate(addTaskStartDate),
+      endDate: formatDate(addTaskEndDate),
+      complete: false,
+    };
+
+    const updatedTasks = [...todos, newTask];
+
+    // Save the updated tasks to AsyncStorage
+    saveTasksToStorage(updatedTasks);
+
+    setTodos(updatedTasks);
 
     setInput("");
     setAddTaskVisible(!addTaskVisible);
