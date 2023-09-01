@@ -10,8 +10,6 @@ import Homepage from "./pages/Homepage";
 import Calendar from "./pages/Calendar";
 import Achievements from "./pages/Achievements";
 
-const RecentsRoute = () => <Text>Recents</Text>;
-
 export default function App() {
   const [todos, setTodos] = useState([
     {
@@ -19,14 +17,17 @@ export default function App() {
       value: "test 1",
       complete: false,
       description: "some description",
-      startDate: "2023-09-05",
+      startDate: "2023-09-01",
       endDate: "2023-09-10",
     },
   ]);
-  const [index, setIndex] = React.useState(0);
+  const [index, setIndex] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const theme = { ...DefaultTheme };
 
-  const [routes] = React.useState([
+  const [routes] = useState([
     {
       key: "home",
       title: "",
@@ -48,7 +49,12 @@ export default function App() {
   ]);
 
   const HomeRoute = () => (
-    <Homepage todos={todos} setTodos={setTodos}></Homepage>
+    <Homepage
+      todos={todos}
+      setTodos={setTodos}
+      selectedDate={selectedDate}
+      setSelectedDate={setSelectedDate}
+    ></Homepage>
   );
   const CalendarRoute = () => (
     <Calendar todos={todos} setTodos={setTodos}></Calendar>

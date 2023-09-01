@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, View, FlatList } from "react-native";
 import {
   Checkbox,
@@ -16,16 +16,18 @@ import {
 import { Calendar } from "react-native-calendars";
 import TaskItem from "../components/TaskItem";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { formatDate } from "../commons/formatDate";
 
 let id = 1;
 
-export default function Homepage({ todos, setTodos }) {
-  const currentDate = new Date().toISOString().split("T")[0];
-
+export default function Homepage({
+  todos,
+  setTodos,
+  selectedDate,
+  setSelectedDate,
+}) {
   const [input, setInput] = useState("");
   const [description, setDescription] = useState("");
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
   const [editInput, setEditInput] = useState({});
   const [dateVisible, setDateVisible] = React.useState(false);
   const [addTaskVisible, setAddTaskVisible] = React.useState(false);
@@ -33,19 +35,33 @@ export default function Homepage({ todos, setTodos }) {
   const [mode, setMode] = useState("date");
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(currentDate);
 
-  // Convert "YYYY-MM-DD" format to "MM/DD/YYYY" format
-  const formattedDate = currentDate.split("-").reverse().join("/");
+  const [addTaskStartDate, setAddTaskStartDate] = useState(new Date());
+  const [addTaskEndDate, setAddTaskEndDate] = useState(new Date());
 
-  const onChangeStartDate = (event, selectedDate) => {
+  const [editTaskStartDate, setEditTaskStartDate] = useState(new Date());
+  const [editTaskEndDate, setEditTaskEndDate] = useState(new Date());
+
+  // Add Task
+  const onChangeAddTaskStartDate = (event, selectedDate) => {
     setShowStartDatePicker(false);
-    setStartDate(selectedDate || startDate); // Use current value if no date is selected
+    setAddTaskStartDate(selectedDate || addTaskStartDate);
   };
 
-  const onChangeEndDate = (event, selectedDate) => {
+  const onChangeAddTaskEndDate = (event, selectedDate) => {
     setShowEndDatePicker(false);
-    setEndDate(selectedDate || endDate); // Use current value if no date is selected
+    setAddTaskEndDate(selectedDate || addTaskEndDate);
+  };
+
+  // Edit Task
+  const onChangeEditTaskStartDate = (event, selectedDate) => {
+    setShowStartDatePicker(false);
+    setEditTaskStartDate(selectedDate || editTaskStartDate);
+  };
+
+  const onChangeEditTaskEndDate = (event, selectedDate) => {
+    setShowEndDatePicker(false);
+    setEditTaskEndDate(selectedDate || editTaskEndDate);
   };
 
   const showDialog = (type, id) => {
@@ -63,9 +79,6 @@ export default function Homepage({ todos, setTodos }) {
           setEditInput(selectedTodo);
         }
         break;
-      case "datePicker":
-        setShow(true);
-        break;
       default:
         break;
     }
@@ -78,11 +91,12 @@ export default function Homepage({ todos, setTodos }) {
         id: id++,
         value: input,
         description: description,
-        startDate: startDate,
-        endDate: endDate,
+        startDate: formatDate(addTaskStartDate),
+        endDate: formatDate(addTaskEndDate),
         complete: false,
       },
     ]);
+
     setInput("");
     setAddTaskVisible(!addTaskVisible);
   };
@@ -92,10 +106,16 @@ export default function Homepage({ todos, setTodos }) {
   };
 
   const handleEdit = () => {
-    console.log(editInput.id);
+    const editedTask = {
+      ...editInput,
+      startDate: formatDate(editTaskStartDate),
+      endDate: formatDate(editTaskEndDate),
+    };
+
     const updatedTodos = todos.map((todo) =>
-      todo.id === editInput.id ? editInput : todo
+      todo.id === editInput.id ? editedTask : todo
     );
+
     setTodos(updatedTodos);
     setEditInput({});
   };
@@ -106,12 +126,28 @@ export default function Homepage({ todos, setTodos }) {
     );
     setTodos(updatedTodos);
   };
+
+  // To sort todos such that completed ones are automatically moved to the bottom
+  const sortedTodos = todos
+    .filter(
+      (task) => task.startDate <= selectedDate && task.endDate >= selectedDate
+    )
+    .sort((a, b) => {
+      if (a.complete === b.complete) {
+        return 0;
+      } else if (a.complete) {
+        return 1;
+      } else {
+        return -1;
+      }
+    });
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Hey There!</Text>
       <Text></Text>
       <View style={styles.dateContainer}>
-        <Text>Task Lists For:</Text>
+        <Text style={{ paddingRight: 8 }}>Task Lists For:</Text>
         <Button
           onPress={() => showDialog("calendar")}
           style={styles.dateButton}
@@ -121,42 +157,19 @@ export default function Homepage({ todos, setTodos }) {
           {selectedDate}
         </Button>
       </View>
-      {/* Uncompleted Task */}
       <FlatList
-        data={todos.filter(
-          (task) =>
-            task.startDate <= selectedDate && task.endDate >= selectedDate
-        )}
+        data={sortedTodos}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) =>
-          !item.complete && (
+        renderItem={({ item }) => (
+          <>
             <TaskItem
               item={item}
               handleComplete={handleComplete}
               showDialog={showDialog}
               handleDelete={handleDelete}
             />
-          )
-        }
-      />
-
-      {/* Completed Task */}
-      <FlatList
-        data={todos.filter(
-          (task) =>
-            task.startDate <= selectedDate && task.endDate >= selectedDate
+          </>
         )}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) =>
-          item.complete && (
-            <TaskItem
-              item={item}
-              handleComplete={handleComplete}
-              showDialog={showDialog}
-              handleDelete={handleDelete}
-            />
-          )
-        }
       />
       <Portal>
         {/* Add Task Dialog */}
@@ -182,40 +195,56 @@ export default function Homepage({ todos, setTodos }) {
               value={description}
               onChangeText={(text) => setDescription(text)}
             />
-            <View style={styles.inputContainer}>
-              <Text>Set Start Date</Text>
-              <Button
-                mode="contained"
-                onPress={() => setShowStartDatePicker(true)}
-              >
-                {startDate.toLocaleString()}
-              </Button>
-              {showStartDatePicker && (
-                <DateTimePicker
-                  testID="dateTimePicker"
-                  value={startDate}
-                  mode={mode}
-                  onChange={onChangeStartDate}
-                />
-              )}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <View style={{ alignItems: "center" }}>
+                <Text>Start Date</Text>
+                <Button
+                  mode="contained"
+                  onPress={() => setShowStartDatePicker(true)}
+                >
+                  {formatDate(addTaskStartDate)}
+                </Button>
+              </View>
+
+              <Text style={{ marginHorizontal: 8 }}>to</Text>
+
+              <View style={{ alignItems: "center" }}>
+                <Text>End Date</Text>
+                <Button
+                  mode="contained"
+                  onPress={() => setShowEndDatePicker(true)}
+                >
+                  {formatDate(addTaskEndDate)}
+                </Button>
+              </View>
             </View>
-            <View style={styles.inputContainer}>
-              <Text>Set End Date</Text>
-              <Button
-                mode="contained"
-                onPress={() => setShowEndDatePicker(true)}
-              >
-                {endDate.toLocaleString()}
-              </Button>
-              {showEndDatePicker && (
-                <DateTimePicker
-                  testID="dateTimePicker"
-                  value={endDate}
-                  mode={mode}
-                  onChange={onChangeEndDate}
-                />
-              )}
-            </View>
+
+            {showStartDatePicker && (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={addTaskStartDate}
+                mode={mode}
+                onChange={(event, selectedDate) =>
+                  onChangeAddTaskStartDate(event, selectedDate)
+                }
+              />
+            )}
+            {showEndDatePicker && (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={addTaskEndDate}
+                mode={mode}
+                onChange={(event, selectedDate) =>
+                  onChangeAddTaskEndDate(event, selectedDate)
+                }
+              />
+            )}
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={handleSubmit} type="submit">
@@ -229,10 +258,11 @@ export default function Homepage({ todos, setTodos }) {
           onDismiss={() => showDialog("editTask")}
         >
           <Dialog.Title>Edit Task</Dialog.Title>
-          <Dialog.Content>
+          <Dialog.Content style={styles.dialogContent}>
             <TextInput
               mode="outlined"
               label="Edit task"
+              style={styles.inputContainer}
               value={editInput.value}
               onChangeText={(text) =>
                 setEditInput({ ...editInput, value: text })
@@ -241,32 +271,68 @@ export default function Homepage({ todos, setTodos }) {
             <TextInput
               mode="outlined"
               label="Edit Description"
+              style={styles.inputContainer}
               value={editInput.description}
               onChangeText={(text) =>
                 setEditInput({ ...editInput, description: text })
               }
             />
-            <TextInput
-              mode="outlined"
-              label="Change Start Date"
-              value={editInput.startDate}
-              onChangeText={(text) =>
-                setEditInput({ ...editInput, startDate: text })
-              }
-            />
-            <TextInput
-              mode="outlined"
-              label="Change End Date"
-              value={editInput.endDate}
-              onChangeText={(text) =>
-                setEditInput({ ...editInput, endDate: text })
-              }
-            />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <View style={{ alignItems: "center" }}>
+                <Text>Start Date</Text>
+                <Button
+                  mode="contained"
+                  onPress={() => setShowStartDatePicker(true)}
+                >
+                  {formatDate(editTaskStartDate)}
+                </Button>
+              </View>
+
+              <Text style={{ marginHorizontal: 8 }}>to</Text>
+
+              <View style={{ alignItems: "center" }}>
+                <Text>End Date</Text>
+                <Button
+                  mode="contained"
+                  onPress={() => setShowEndDatePicker(true)}
+                >
+                  {formatDate(editTaskEndDate)}
+                </Button>
+              </View>
+            </View>
+
+            {showStartDatePicker && (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={editTaskStartDate}
+                mode={mode}
+                onChange={(event, selectedDate) =>
+                  onChangeEditTaskStartDate(event, selectedDate)
+                }
+              />
+            )}
+            {showEndDatePicker && (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={editTaskEndDate}
+                mode={mode}
+                onChange={(event, selectedDate) =>
+                  onChangeEditTaskEndDate(event, selectedDate)
+                }
+              />
+            )}
           </Dialog.Content>
           <Dialog.Actions style={styles.buttonContainer}>
             <Button onPress={handleEdit}>Edit Task</Button>
           </Dialog.Actions>
         </Dialog>
+
         <Dialog visible={dateVisible} onDismiss={() => showDialog("calendar")}>
           <Dialog.Title>Calender</Dialog.Title>
           <Dialog.Content>
@@ -283,9 +349,6 @@ export default function Homepage({ todos, setTodos }) {
               }}
             />
           </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => showDialog("calendar")}>Done</Button>
-          </Dialog.Actions>
         </Dialog>
       </Portal>
       <FAB
@@ -305,15 +368,15 @@ const styles = StyleSheet.create({
   heading: {
     fontWeight: "bold",
     fontSize: 40,
-    marginBottom: 16,
   },
   dateContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 16,
   },
   dateButton: {
     flex: 0,
+    paddingHorizontal: 6,
   },
   divider: {
     marginVertical: 16,
