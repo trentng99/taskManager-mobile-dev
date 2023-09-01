@@ -15,11 +15,13 @@ import {
 } from "react-native-paper";
 import { Calendar } from "react-native-calendars";
 import TaskItem from "../components/TaskItem";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 let id = 1;
 
 export default function Homepage({ todos, setTodos }) {
+  const currentDate = new Date().toISOString().split("T")[0];
+
   const [input, setInput] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState(new Date());
@@ -28,17 +30,22 @@ export default function Homepage({ todos, setTodos }) {
   const [dateVisible, setDateVisible] = React.useState(false);
   const [addTaskVisible, setAddTaskVisible] = React.useState(false);
   const [editTaskVisible, setEditTaskVisible] = React.useState(false);
-  const [mode, setMode] = useState('date');
-  const [show, setShow] = useState(false);
+  const [mode, setMode] = useState("date");
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(currentDate);
 
-  const onChangeStartDate = (event, selectedDate, test) => {
-    setShow(false);
-    setStartDate(selectedDate);
+  // Convert "YYYY-MM-DD" format to "MM/DD/YYYY" format
+  const formattedDate = currentDate.split("-").reverse().join("/");
+
+  const onChangeStartDate = (event, selectedDate) => {
+    setShowStartDatePicker(false);
+    setStartDate(selectedDate || startDate); // Use current value if no date is selected
   };
 
-  const onChangeEndDate = (event, selectedDate, test) => {
-    setShow(false);
-    setEndDate(selectedDate);
+  const onChangeEndDate = (event, selectedDate) => {
+    setShowEndDatePicker(false);
+    setEndDate(selectedDate || endDate); // Use current value if no date is selected
   };
 
   const showDialog = (type, id) => {
@@ -57,7 +64,7 @@ export default function Homepage({ todos, setTodos }) {
         }
         break;
       case "datePicker":
-        setShow(true)
+        setShow(true);
         break;
       default:
         break;
@@ -65,7 +72,17 @@ export default function Homepage({ todos, setTodos }) {
   };
 
   const handleSubmit = () => {
-    setTodos([...todos, { id: id++, value: input, description: description, startDate: startDate, endDate: endDate, complete: false }]);
+    setTodos([
+      ...todos,
+      {
+        id: id++,
+        value: input,
+        description: description,
+        startDate: startDate,
+        endDate: endDate,
+        complete: false,
+      },
+    ]);
     setInput("");
     setAddTaskVisible(!addTaskVisible);
   };
@@ -75,7 +92,7 @@ export default function Homepage({ todos, setTodos }) {
   };
 
   const handleEdit = () => {
-    console.log(editInput.id)
+    console.log(editInput.id);
     const updatedTodos = todos.map((todo) =>
       todo.id === editInput.id ? editInput : todo
     );
@@ -91,10 +108,8 @@ export default function Homepage({ todos, setTodos }) {
   };
   return (
     <View style={styles.container}>
-      <Text>hello</Text>
       <Text style={styles.heading}>Hey There!</Text>
-      <Text>
-      </Text>
+      <Text></Text>
       <View style={styles.dateContainer}>
         <Text>Task Lists For:</Text>
         <Button
@@ -103,29 +118,34 @@ export default function Homepage({ todos, setTodos }) {
           mode="contained"
           compact
         >
-          {new Date().toDateString()}
+          {selectedDate}
         </Button>
       </View>
       {/* Uncompleted Task */}
-      <View>
-        <FlatList
-          data={todos}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) =>
-            !item.complete && (
-              <TaskItem
-                item={item}
-                handleComplete={handleComplete}
-                showDialog={showDialog}
-                handleDelete={handleDelete}
-              />
-            )
-          }
-        />
-      </View>
+      <FlatList
+        data={todos.filter(
+          (task) =>
+            task.startDate <= selectedDate && task.endDate >= selectedDate
+        )}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) =>
+          !item.complete && (
+            <TaskItem
+              item={item}
+              handleComplete={handleComplete}
+              showDialog={showDialog}
+              handleDelete={handleDelete}
+            />
+          )
+        }
+      />
+
       {/* Completed Task */}
       <FlatList
-        data={todos}
+        data={todos.filter(
+          (task) =>
+            task.startDate <= selectedDate && task.endDate >= selectedDate
+        )}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) =>
           item.complete && (
@@ -164,8 +184,13 @@ export default function Homepage({ todos, setTodos }) {
             />
             <View style={styles.inputContainer}>
               <Text>Set Start Date</Text>
-              <Button mode="contained" onPress={() => showDialog("datePicker")}>{startDate.toLocaleString()}</Button>
-              {show && (
+              <Button
+                mode="contained"
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                {startDate.toLocaleString()}
+              </Button>
+              {showStartDatePicker && (
                 <DateTimePicker
                   testID="dateTimePicker"
                   value={startDate}
@@ -176,8 +201,13 @@ export default function Homepage({ todos, setTodos }) {
             </View>
             <View style={styles.inputContainer}>
               <Text>Set End Date</Text>
-              <Button mode="contained" onPress={() => showDialog("datePicker")}>{endDate.toLocaleString()}</Button>
-              {show && (
+              <Button
+                mode="contained"
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                {endDate.toLocaleString()}
+              </Button>
+              {showEndDatePicker && (
                 <DateTimePicker
                   testID="dateTimePicker"
                   value={endDate}
@@ -240,7 +270,18 @@ export default function Homepage({ todos, setTodos }) {
         <Dialog visible={dateVisible} onDismiss={() => showDialog("calendar")}>
           <Dialog.Title>Calender</Dialog.Title>
           <Dialog.Content>
-            <Calendar></Calendar>
+            <Calendar
+              onDayPress={(day) => {
+                setSelectedDate(day.dateString);
+              }}
+              markedDates={{
+                [selectedDate]: {
+                  selected: true,
+                  disableTouchEvent: true,
+                  selectedDotColor: "orange",
+                },
+              }}
+            />
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => showDialog("calendar")}>Done</Button>
@@ -296,7 +337,7 @@ const styles = StyleSheet.create({
     textDecorationLine: "line-through",
   },
   dialogContent: {
-    flexDirection: 'column',
+    flexDirection: "column",
   },
   fab: {
     position: "absolute",
@@ -305,6 +346,6 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   inputContainer: {
-    marginBottom: 10
-  }
+    marginBottom: 10,
+  },
 });

@@ -19,8 +19,8 @@ export default function App() {
       value: "test 1",
       complete: false,
       description: "some description",
-      startDate: "12/08/23",
-      endDate: "23/08/23",
+      startDate: "2023-09-05",
+      endDate: "2023-09-10",
     },
   ]);
   const [index, setIndex] = React.useState(0);
