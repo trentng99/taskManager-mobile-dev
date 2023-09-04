@@ -42,7 +42,7 @@ const TaskItem = ({ item, handleComplete, handleDelete, showDialog }) => {
             <>
               <Button
                 mode="text"
-                onPress={() => showDialog(item)}
+                onPress={() => showDialog("editTask", item.id)}
                 icon="pencil"
               />
               <Button

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, FlatList } from "react-native";
+import { globalStyles } from "../commons/styles";
 import {
   Checkbox,
   TextInput,
@@ -17,7 +18,6 @@ import { Calendar } from "react-native-calendars";
 import TaskItem from "../components/TaskItem";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { formatDate } from "../commons/formatDate";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 let id = 1;
 
@@ -150,9 +150,8 @@ export default function Homepage({
     });
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Hey There!</Text>
-      <Text></Text>
+    <View style={globalStyles.container}>
+      <Text style={globalStyles.heading}>Hey There!</Text>
       <View style={styles.dateContainer}>
         <Text style={{ paddingRight: 8 }}>Task Lists For:</Text>
         <Button
@@ -368,14 +367,6 @@ export default function Homepage({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    margin: 20,
-  },
-  heading: {
-    fontWeight: "bold",
-    fontSize: 40,
-  },
   dateContainer: {
     flexDirection: "row",
     alignItems: "center",
