@@ -32,16 +32,14 @@ export default function Homepage({
   const [input, setInput] = useState("");
   const [description, setDescription] = useState("");
   const [editInput, setEditInput] = useState({});
-  const [dateVisible, setDateVisible] = React.useState(false);
-  const [addTaskVisible, setAddTaskVisible] = React.useState(false);
-  const [editTaskVisible, setEditTaskVisible] = React.useState(false);
+  const [dateVisible, setDateVisible] = useState(false);
+  const [addTaskVisible, setAddTaskVisible] = useState(false);
+  const [editTaskVisible, setEditTaskVisible] = useState(false);
   const [mode, setMode] = useState("date");
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-
   const [addTaskStartDate, setAddTaskStartDate] = useState(new Date());
   const [addTaskEndDate, setAddTaskEndDate] = useState(new Date());
-
   const [editTaskStartDate, setEditTaskStartDate] = useState(new Date());
   const [editTaskEndDate, setEditTaskEndDate] = useState(new Date());
 
@@ -66,6 +64,10 @@ export default function Homepage({
     setShowEndDatePicker(false);
     setEditTaskEndDate(selectedDate || editTaskEndDate);
   };
+
+  useEffect(() => {
+    saveTasksToStorage(todos);
+  }, [todos, setTodos])
 
   const showDialog = (type, id) => {
     switch (type) {
@@ -98,9 +100,6 @@ export default function Homepage({
     };
 
     const updatedTasks = [...todos, newTask];
-
-    // Save the updated tasks to AsyncStorage
-    saveTasksToStorage(updatedTasks);
 
     setTodos(updatedTasks);
 
