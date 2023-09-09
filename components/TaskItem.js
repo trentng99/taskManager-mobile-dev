@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Checkbox, Text, Button, Dialog, Portal } from "react-native-paper";
 import { formatDate } from "../commons/formatDate";
-import Icon from "react-native-vector-icons/MaterialIcons"; // Import the icon library you prefer
+import Icon from "react-native-vector-icons/MaterialIcons";
+import TaskDialog from './TaskDialog';
+
 
 const TaskItem = ({ item, handleComplete, handleDelete, showDialog }) => {
   const [visible, setVisible] = useState(false);
@@ -54,30 +56,7 @@ const TaskItem = ({ item, handleComplete, handleDelete, showDialog }) => {
           )}
         </View>
       </TouchableOpacity>
-      <Portal>
-        <Dialog visible={visible} onDismiss={hideTaskDetails}>
-          <Dialog.Title style={styles.dialogTitle}>{item.value}</Dialog.Title>
-          <Dialog.Content>
-            <Text style={styles.dialogText}>
-              <Icon name="description" size={16} color="#007AFF" /> Description:{" "}
-              {item.description}
-            </Text>
-            <Text style={styles.dialogText}>
-              <Icon name="event" size={16} color="#007AFF" /> Start Date:{" "}
-              {formatDate(item.startDate)}
-            </Text>
-            <Text style={styles.dialogText}>
-              <Icon name="event" size={16} color="#007AFF" /> End Date:{" "}
-              {formatDate(item.endDate)}
-            </Text>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={hideTaskDetails} style={styles.dialogButton}>
-              Close
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      <TaskDialog item={item} visible={visible} onClose={hideTaskDetails} />
     </>
   );
 };
