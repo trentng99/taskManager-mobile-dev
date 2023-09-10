@@ -25,16 +25,17 @@ export default function App() {
       try {
         const jsonTasks = await AsyncStorage.getItem("tasks");
         setTodos(
-          jsonTasks
-            ? JSON.parse(jsonTasks)
+          jsonTasks.length > 0 && Array.isArray(jsonTasks) // Check if returned value is an array and not empty
+            ? JSON.parse(jsonTasks) // If true, populate todos with jsonTasks
             : [
+                // else populate with test data
                 {
                   id: 0,
                   value: "test 1",
                   complete: false,
                   description: "some description",
-                  startDate: "2023-09-01",
-                  endDate: "2023-09-10",
+                  startDate: new Date().toISOString().split("T")[0],
+                  endDate: new Date().toISOString().split("T")[0],
                 },
               ]
         );
@@ -54,6 +55,10 @@ export default function App() {
       console.error("Error saving tasks to AsyncStorage: ", error);
     }
   };
+
+  useEffect(() => {
+    saveTasksToStorage(todos);
+  }, [todos]);
 
   const [routes] = useState([
     {

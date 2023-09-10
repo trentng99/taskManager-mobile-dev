@@ -65,10 +65,6 @@ export default function Homepage({
     setEditTaskEndDate(selectedDate || editTaskEndDate);
   };
 
-  useEffect(() => {
-    saveTasksToStorage(todos);
-  }, [todos, setTodos])
-
   const showDialog = (type, id) => {
     switch (type) {
       case "addTask":
@@ -133,18 +129,24 @@ export default function Homepage({
     setTodos(updatedTodos);
   };
 
-  // To sort todos such that completed ones are automatically moved to the bottom
   const sortedTodos = todos
     .filter(
       (task) => task.startDate <= selectedDate && task.endDate >= selectedDate
     )
     .sort((a, b) => {
-      if (a.complete === b.complete) {
-        return 0;
-      } else if (a.complete) {
-        return 1;
+      const dateA = new Date(a.endDate).getTime();
+      const dateB = new Date(b.endDate).getTime();
+
+      if (dateA === dateB) {
+        if (a.complete === b.complete) {
+          return 0;
+        } else if (a.complete) {
+          return 1;
+        } else {
+          return -1;
+        }
       } else {
-        return -1;
+        return dateA - dateB;
       }
     });
 
@@ -175,6 +177,15 @@ export default function Homepage({
             />
           </>
         )}
+        shouldComponentUpdate={(props, nextProps) => {
+          // Compare item properties for changes
+          return (
+            props.item.value !== nextProps.item.value ||
+            props.item.complete !== nextProps.item.complete ||
+            props.item.startDate !== nextProps.item.startDate ||
+            props.item.endDate !== nextProps.item.endDate
+          );
+        }}
       />
       <Portal>
         {/* Add Task Dialog */}

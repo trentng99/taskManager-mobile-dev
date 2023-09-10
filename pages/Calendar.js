@@ -4,10 +4,11 @@ import { Text, Card } from "react-native-paper";
 import { globalStyles } from "../commons/styles";
 import { Agenda } from "react-native-calendars";
 import { formatDate } from "../commons/formatDate";
+import { CalenderItem } from "../components/CalendarItem";
 
 export default function Calendar({ todos, setTodos }) {
   const [filteredTasks, setFilteredTasks] = useState({});
-  const [selectedDate, setSelectedDate] = useState(formatDate(new Date())); // Default to the current date
+  const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
 
   const filterTasksByDate = (selectedDate) => {
     return todos.filter((task) => {
@@ -53,31 +54,16 @@ export default function Calendar({ todos, setTodos }) {
     loadItemsForTheMonth(day);
   };
 
-  const renderItem = (item) => {
-    return (
-      <TouchableOpacity style={styles.item}>
-        <Card>
-          <Card.Content>
-            <View>
-              <Text>{item.value}</Text>
-              <Text>{item.endDate}</Text>
-            </View>
-          </Card.Content>
-        </Card>
-      </TouchableOpacity>
-    );
-  };
-
   return (
     <View style={globalStyles.container}>
       <Text variant="headlineLarge" style={globalStyles.heading}>
-        Calendar
+        Calendarss
       </Text>
       <Agenda
         onDayPress={onDayPress}
         items={filteredTasks}
         selected={selectedDate}
-        renderItem={renderItem}
+        renderItem={CalenderItem}
         refreshControl={null}
         showClosingKnob={true}
         refreshing={false}
@@ -86,13 +72,3 @@ export default function Calendar({ todos, setTodos }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  item: {
-    flex: 1,
-    borderRadius: 5,
-    padding: 10,
-    marginRight: 10,
-    marginTop: 17,
-  },
-});
