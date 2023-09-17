@@ -18,6 +18,8 @@ import { Calendar } from "react-native-calendars";
 import TaskItem from "../components/TaskItem";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { formatDate } from "../commons/formatDate";
+import addTasks from "../commons/addTasks";
+import deleteTask from "../commons/deleteTask";
 
 let id = 1;
 
@@ -86,25 +88,23 @@ export default function Homepage({
   };
 
   const handleSubmit = () => {
-    const newTask = {
-      id: id++,
-      value: input,
-      description: description,
-      startDate: formatDate(addTaskStartDate),
-      endDate: formatDate(addTaskEndDate),
-      complete: false,
-    };
-
-    const updatedTasks = [...todos, newTask];
-
-    setTodos(updatedTasks);
+    addTasks(
+      id++,
+      input,
+      description,
+      formatDate(addTaskStartDate),
+      formatDate(addTaskEndDate),
+      false,
+      todos,
+      setTodos
+    );
 
     setInput("");
     setAddTaskVisible(!addTaskVisible);
   };
 
   const handleDelete = (id) => {
-    setTodos(todos.filter((task) => task.id !== id));
+    deleteTask(id, todos, setTodos);
   };
 
   const handleEdit = () => {
